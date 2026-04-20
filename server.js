@@ -24,6 +24,7 @@ function isConfirmed(val) {
   return ok.includes(s);
 }
 
+// Webhook Retell - inchange
 app.post('/webhook/retell', async (req, res) => {
   try {
     const event = req.body || {};
@@ -64,6 +65,7 @@ app.post('/webhook/retell', async (req, res) => {
   }
 });
 
+// Ticket impression - inchange
 app.get('/ticket/:orderId', async (req, res) => {
   try {
     const orderId = req.params.orderId;
@@ -75,38 +77,45 @@ app.get('/ticket/:orderId', async (req, res) => {
     const f = response.data.records[0].fields;
     const now = new Date().toLocaleString('fr-FR');
     const nCmd = f['N\u00b0 Commande'] || '';
-    const tHtml = [
-      '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Ticket ' + nCmd + '</title>',
-      '<style>body{font-family:"Courier New",monospace;max-width:310px;margin:20px auto;padding:15px;font-size:13px}',
-      '.center{text-align:center}.bold{font-weight:bold}.large{font-size:18px}',
-      '.sep{border-top:2px dashed #000;margin:10px 0}.row{display:flex;justify-content:space-between;margin:3px 0}',
-      '.badge{background:#000;color:#fff;padding:5px 12px;display:inline-block;font-size:16px;margin:5px 0;border-radius:4px}',
-      '.detail{background:#f5f5f5;padding:8px;margin:5px 0;white-space:pre-wrap;font-size:12px;border-left:3px solid #000}',
-      '.total{font-size:20px;font-weight:bold}@media print{.no-print{display:none!important}body{margin:0;max-width:100%}}</style></head>',
-      '<body><div class="center"><div style="font-size:24px">\u{1F355}</div><div class="bold large">PIZZA TRATTORIA</div>',
-      '<div class="sep"></div><div class="badge">' + nCmd + '</div><div style="font-size:11px">' + now + '</div></div>',
-      '<div class="sep"></div>',
-      '<div class="row"><span class="bold">Client :</span><span>' + (f['Nom Client']||'N/A') + '</span></div>',
-      '<div class="row"><span class="bold">T\u00e9l :</span><span>' + (f['T\u00e9l\u00e9phone']||'N/A') + '</span></div>',
-      '<div class="row"><span class="bold">Mode :</span><span class="bold" style="text-transform:uppercase">' + (f['Type']||'N/A') + '</span></div>',
-      f['Adresse Livraison'] ? '<div class="row"><span class="bold">Adresse :</span><span>' + f['Adresse Livraison'] + '</span></div>' : '',
-      '<div class="sep"></div><div class="bold">COMMANDE :</div><div class="detail">' + (f['D\u00e9tail Commande']||'N/A') + '</div>',
-      '<div class="sep"></div><div class="row"><span class="total">TOTAL :</span><span class="total">',
-      f['Montant (\u20ac)'] ? parseFloat(f['Montant (\u20ac)']).toFixed(2)+' \u20ac' : 'N/A',
-      '</span></div><div class="sep"></div>',
-      '<div class="center"><div class="bold">\u23f1 D\u00e9lai : ' + (f['D\u00e9lai']||'N/A') + '</div>',
-      '<div style="font-size:10px;margin-top:8px">Merci ! Pizza Trattoria</div></div>',
-      '<div class="sep no-print"></div>',
-      '<div class="center no-print" style="margin:15px 0">',
-      '<button onclick="window.print()" style="background:#dc2626;color:#fff;border:none;padding:10px 24px;font-size:15px;border-radius:6px;cursor:pointer;font-weight:bold">IMPRIMER</button>',
-      '</div></body></html>'
-    ].join('');
-    res.send(tHtml);
+    const montantStr = f['Montant (\u20ac)'] != null ? parseFloat(f['Montant (\u20ac)']).toFixed(2) + ' \u20ac' : 'N/A';
+    const adresseRow = f['Adresse Livraison'] ? '<div class="row"><span class="bold">Adresse :</span><span>' + f['Adresse Livraison'] + '</span></div>' : '';
+    res.send('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Ticket ' + nCmd + '</title>' +
+      '<style>body{font-family:"Courier New",monospace;max-width:310px;margin:20px auto;padding:15px;font-size:13px}' +
+      '.center{text-align:center}.bold{font-weight:bold}.large{font-size:18px}' +
+      '.sep{border-top:2px dashed #000;margin:10px 0}.row{display:flex;justify-content:space-between;margin:3px 0}' +
+      '.badge{background:#000;color:#fff;padding:5px 12px;display:inline-block;font-size:16px;margin:5px 0;border-radius:4px}' +
+      '.detail{background:#f5f5f5;padding:8px;margin:5px 0;white-space:pre-wrap;font-size:12px;border-left:3px solid #000}' +
+      '.total{font-size:20px;font-weight:bold}' +
+      '@media print{.no-print{display:none!important}body{margin:0;max-width:100%}}' +
+      '</style></head><body>' +
+      '<div class="center"><div style="font-size:24px">&#127829;</div>' +
+      '<div class="bold large">PIZZA TRATTORIA</div>' +
+      '<div class="sep"></div>' +
+      '<div class="badge">' + nCmd + '</div>' +
+      '<div style="font-size:11px">' + now + '</div></div>' +
+      '<div class="sep"></div>' +
+      '<div class="row"><span class="bold">Client :</span><span>' + (f['Nom Client']||'N/A') + '</span></div>' +
+      '<div class="row"><span class="bold">T\u00e9l :</span><span>' + (f['T\u00e9l\u00e9phone']||'N/A') + '</span></div>' +
+      '<div class="row"><span class="bold">Mode :</span><span class="bold" style="text-transform:uppercase">' + (f['Type']||'N/A') + '</span></div>' +
+      adresseRow +
+      '<div class="sep"></div>' +
+      '<div class="bold">COMMANDE :</div>' +
+      '<div class="detail">' + (f['D\u00e9tail Commande']||'N/A') + '</div>' +
+      '<div class="sep"></div>' +
+      '<div class="row"><span class="total">TOTAL :</span><span class="total">' + montantStr + '</span></div>' +
+      '<div class="sep"></div>' +
+      '<div class="center"><div class="bold">&#9201; D\u00e9lai : ' + (f['D\u00e9lai']||'N/A') + '</div>' +
+      '<div style="font-size:10px;margin-top:8px">Merci ! Pizza Trattoria &#127829;</div></div>' +
+      '<div class="sep no-print"></div>' +
+      '<div class="center no-print" style="margin:15px 0">' +
+      '<button onclick="window.print()" style="background:#dc2626;color:#fff;border:none;padding:10px 24px;font-size:15px;border-radius:6px;cursor:pointer;font-weight:bold">&#128438;&#65039; IMPRIMER</button>' +
+      '</div></body></html>');
   } catch(err) {
     res.status(500).send('Erreur: ' + err.message);
   }
 });
 
+// API JSON - retourne les commandes Airtable
 app.get('/api/orders', async (req, res) => {
   try {
     const resp = await axios.get(
@@ -119,9 +128,14 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
+// Dashboard - HTML statique, JS injecte les donnees via /api/orders
 app.get('/dashboard', (req, res) => {
-  const dashHtml = [
-    '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">',
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.end([
+    '<!DOCTYPE html>',
+    '<html lang="fr">',
+    '<head>',
+    '<meta charset="UTF-8">',
     '<meta name="viewport" content="width=device-width,initial-scale=1">',
     '<title>Pizza Trattoria POS</title>',
     '<style>',
@@ -156,7 +170,9 @@ app.get('/dashboard', (req, res) => {
     '.er td{text-align:center;padding:36px;color:#9ca3af}',
     '@media(max-width:768px){.hdr{padding:10px 14px}.hdr h1{font-size:15px}.container{padding:10px}.stats{grid-template-columns:repeat(2,1fr);gap:8px}.card{padding:10px 12px}.card .val{font-size:22px}}',
     '@media(max-width:480px){.stats{grid-template-columns:1fr 1fr}.card .val{font-size:18px}.hdr h1{font-size:14px}}',
-    '</style></head><body>',
+    '</style>',
+    '</head>',
+    '<body>',
     '<div class="hdr">',
     '<span style="font-size:26px">&#127829;</span>',
     '<div><h1>Pizza Trattoria &#8212; POS</h1>',
@@ -177,48 +193,65 @@ app.get('/dashboard', (req, res) => {
     '</tr></thead><tbody id="tb"><tr class="er"><td colspan="9">Chargement...</td></tr></tbody></table></div>',
     '</div></div>',
     '<script>',
+    '(function(){',
     'var cd=30,cdi,upd=false;',
-    'var CL={Nouvelle:"#3b82f6","En pr\u00e9paration":"#f59e0b","Pr\u00eate":"#8b5cf6","Livr\u00e9e":"#22c55e","Annul\u00e9e":"#ef4444"};',
-    'function st(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}',
-    'function ss(txt,ok){st("stxt",txt);var d=document.getElementById("dot");if(d)d.className=ok?"dot g":"dot r";}',
+    'var CL={"Nouvelle":"#3b82f6","En pr\u00e9paration":"#f59e0b","Pr\u00eate":"#8b5cf6","Livr\u00e9e":"#22c55e","Annul\u00e9e":"#ef4444"};',
+    'function gt(id){return document.getElementById(id);}',
+    'function st(id,v){var e=gt(id);if(e)e.textContent=v;}',
+    'function ss(txt,ok){st("stxt",txt);var d=gt("dot");if(d)d.className=ok?"dot g":"dot r";}',
     'function scd(){clearInterval(cdi);cd=30;st("cd","30s");cdi=setInterval(function(){cd--;st("cd",cd+"s");if(cd<=0){clearInterval(cdi);ld();}},1000);}',
     'function rs(rec){',
     '  var t=new Date().toLocaleDateString("fr-FR");',
     '  var ta=rec.filter(function(r){return r.fields.Date&&new Date(r.fields.Date).toLocaleDateString("fr-FR")===t;});',
     '  var tv=ta.filter(function(r){return r.fields.Statut!=="Annul\u00e9e";});',
     '  var ca=tv.reduce(function(s,r){return s+(r.fields["Montant (\u20ac)"]||0);},0);',
-    '  st("st",ta.length);st("sl",ta.filter(function(r){return r.fields.Type==="Livraison";}).length);',
+    '  st("st",ta.length);',
+    '  st("sl",ta.filter(function(r){return r.fields.Type==="Livraison";}).length);',
     '  st("se",ta.filter(function(r){return r.fields.Type==="Emporter";}).length);',
-    '  st("sc",ca.toFixed(2)+" \u20ac");st("cnt",rec.length);',
+    '  st("sc",ca.toFixed(2)+" \u20ac");',
+    '  st("cnt",rec.length);',
+    '}',
+    'function mk(tag,attrs,inner){',
+    '  var parts=["<"+tag];',
+    '  for(var k in attrs){if(attrs[k]!==null)parts.push(" "+k+"=\""+attrs[k]+"\"");}',
+    '  parts.push(">");',
+    '  if(inner!==undefined)parts.push(inner);',
+    '  parts.push("</"+tag+">");',
+    '  return parts.join("");',
     '}',
     'function rr(rec){',
-    '  var tb=document.getElementById("tb");',
-    '  if(!rec||!rec.length){tb.innerHTML="<tr class=\"er\"><td colspan=\"9\">Aucune commande</td></tr>";return;}',
-    '  var h="";',
+    '  var tb=gt("tb");',
+    '  if(!rec||!rec.length){tb.innerHTML=mk("tr",{"class":"er"},mk("td",{colspan:"9"},"Aucune commande"));return;}',
+    '  var rows=[];',
     '  rec.forEach(function(r){',
-    '    var f=r.fields,s=f.Statut||"Nouvelle",cl=CL[s]||"#6b7280";',
+    '    var f=r.fields;',
+    '    var s=f.Statut||"Nouvelle";',
+    '    var cl=CL[s]||"#6b7280";',
     '    var tc=f.Type==="Livraison"?"#f59e0b":"#10b981";',
     '    var m=f["Montant (\u20ac)"]!=null?parseFloat(f["Montant (\u20ac)"]).toFixed(2)+" \u20ac":"N/A";',
     '    var dt=f.Date?new Date(f.Date).toLocaleString("fr-FR"):"N/A";',
     '    var det=(f["D\u00e9tail Commande"]||"-").substring(0,80);',
-    '    var rc=s==="Annul\u00e9e"?" class=\"ann\"":" ";',
     '    var nc=f["N\u00b0 Commande"]||"-";',
-    '    var op=["Nouvelle","En pr\u00e9paration","Pr\u00eate","Livr\u00e9e","Annul\u00e9e"].map(function(x){',
-    '      return "<option value=\""+x+"\"" +(x===s?" selected":"")+">"+x+"</option>";',
+    '    var rc=s==="Annul\u00e9e"?"ann":"";',
+    '    var opts=["Nouvelle","En pr\u00e9paration","Pr\u00eate","Livr\u00e9e","Annul\u00e9e"].map(function(x){',
+    '      return mk("option",{value:x,selected:x===s?"":null},x);',
     '    }).join("");',
-    '    h+="<tr"+rc+">";',
-    '    h+="<td style=\"font-weight:bold;font-family:monospace\">"+nc+"</td>";',
-    '    h+="<td>"+(f["Nom Client"]||"-")+"</td>";',
-    '    h+="<td>"+(f["T\u00e9l\u00e9phone"]||"-")+"</td>";',
-    '    h+="<td><span class=\"bt\" style=\"background:"+tc+"\">"+( f.Type||"-")+"</span></td>";',
-    '    h+="<td style=\"font-size:11px;max-width:200px\">"+det+"</td>";',
-    '    h+="<td style=\"font-weight:bold;color:#dc2626\">"+m+"</td>";',
-    '    h+="<td><select style=\"border-color:"+cl+";color:"+cl+"\" onchange=\"us(\'"+r.id+"\',this)\">"+op+"</select></td>";',
-    '    h+="<td style=\"font-size:11px;white-space:nowrap\">"+dt+"</td>";',
-    '    h+="<td><a class=\"tl\" href=\"/ticket/"+encodeURIComponent(nc)+"\" target=\"_blank\">Print</a></td>";',
-    '    h+="</tr>";',
+    '    var sel=mk("select",{"style":"border-color:"+cl+";color:"+cl,"onchange":"us(\""+r.id+"\",this)"},opts);',
+    '    var lnk=mk("a",{"class":"tl","href":"/ticket/"+encodeURIComponent(nc),"target":"_blank"},"&#128438;");',
+    '    var tds=[',
+    '      mk("td",{"style":"font-weight:bold;font-family:monospace"},nc),',
+    '      mk("td",{},f["Nom Client"]||"-"),',
+    '      mk("td",{},f["T\u00e9l\u00e9phone"]||"-"),',
+    '      mk("td",{},mk("span",{"class":"bt","style":"background:"+tc},f.Type||"-")),',
+    '      mk("td",{"style":"font-size:11px;max-width:200px"},det),',
+    '      mk("td",{"style":"font-weight:bold;color:#dc2626"},m),',
+    '      mk("td",{},sel),',
+    '      mk("td",{"style":"font-size:11px;white-space:nowrap"},dt),',
+    '      mk("td",{},lnk)',
+    '    ].join("");',
+    '    rows.push(mk("tr",{"class":rc},tds));',
     '  });',
-    '  tb.innerHTML=h;',
+    '  tb.innerHTML=rows.join("");',
     '}',
     'function ld(){',
     '  if(upd)return;upd=true;ss("Actualisation...",true);',
@@ -227,21 +260,22 @@ app.get('/dashboard', (req, res) => {
     '  }).catch(function(){ss("Erreur",false);upd=false;scd();});',
     '}',
     'function fr(){clearInterval(cdi);ld();}',
-    'async function us(rid,sel){',
+    'function us(rid,sel){',
     '  var s=sel.value,c=CL[s]||"#6b7280";',
     '  sel.style.borderColor=c;sel.style.color=c;',
     '  var row=sel.closest("tr");if(row)row.className=s==="Annul\u00e9e"?"ann":"";',
-    '  try{',
-    '    await fetch("/update-status",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({recordId:rid,status:s})});',
-    '    setTimeout(function(){ld();},500);',
-    '  }catch(e){console.error(e);}',
+    '  fetch("/update-status",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({recordId:rid,status:s})})',
+    '    .then(function(){setTimeout(function(){ld();},400);})',
+    '    .catch(function(e){console.error(e);});',
     '}',
     'ld();',
-    '</script></body></html>'
-  ].join('');
-  res.send(dashHtml);
+    '})();',
+    '</scr'+'ipt>',
+    '</body></html>'
+  ].join('\n'));
 });
 
+// Update statut Airtable - inchange
 app.post('/update-status', async (req, res) => {
   try {
     const { recordId, status } = req.body;
@@ -256,6 +290,6 @@ app.post('/update-status', async (req, res) => {
   }
 });
 
-app.get('/', (req, res) => res.json({ status: 'ok', service: 'Pizza Trattoria POS', version: '2.2.0' }));
+app.get('/', (req, res) => res.json({ status: 'ok', service: 'Pizza Trattoria POS', version: '2.3.0' }));
 
 app.listen(PORT, () => console.log('POS lance sur port', PORT));
